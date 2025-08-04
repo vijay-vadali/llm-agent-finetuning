@@ -23,10 +23,24 @@ Determine:
 Return JSON format:
 {{
     "task_type": "classification or generation",
+    "num_classes": 3,
     "data_quality": "good or needs_cleaning",
     "preprocessing_steps": ["step1", "step2"],
-    "num_classes": 3,
     "confidence": 0.9
+    "reasoning": "why this strategy makes sense"
+}}
+"""
+
+
+MODEL_RETRAIN_PROMPT = """
+Extract config parameters from this user prompt:
+
+USER REQUEST: {user_prompt}
+Return JSON format: num_epochs, learning_rate, batch_size.
+{{
+    "num_epochs": "3",
+    "learning_rate": "2e-5",
+    "batch_size": 16
 }}
 """
 
@@ -59,8 +73,8 @@ Return JSON format:
     }},
     "preprocessing_steps": ["text_cleaning"],
     "evaluation_metrics": ["accuracy", "f1"],
-    "expected_duration": "15 minutes",
-    "confidence": 0.9
+    "confidence": 0.9,
+     "reasoning": "why this strategy makes sense"
 }}
 """
 
@@ -135,9 +149,7 @@ Suggest:
 Return practical deployment recommendations.
 """
 
-
-
-#Strategy Prompt
+# Used
 STRATEGY_PROMPT = """
 You are an AI orchestrator that coordinates specialized agents for machine learning tasks.
 
@@ -147,8 +159,7 @@ DATA FILE: {data_path}
 Available agents:
 1. DATA_AGENT: Analyzes datasets, determines task type, assesses data quality
 2. PLANNING_AGENT: Creates optimal training strategies, selects models and hyperparameters  
-3. TRAINING_AGENT: Executes model training and handles evaluation and deployment
-Analyze the user request and create an execution strategy:
+3. TRAINING_AGENT: Executes model training and analyzes the user request and create an execution strategy:
 
 1. UNDERSTAND: What does the user want to accomplish?
 2. PLAN: Which agents should be called and in what order?
@@ -181,7 +192,7 @@ Think step by step, then return strategy as JSON:
             "step": 3, 
             "agent": "training_agent",
             "action": "execute_training_plan",
-            "params": {{"data_profile": "from_step_1", "training_plan": "from_step_2", data_path": {data_path}, "user_id": "vadaliv"}},
+            "params": {{"data_profile": "from_step_1", "training_plan": "from_step_2", data_path": {data_path}}},
             "expected_output": "training strategy"
         }}
     ],
@@ -189,36 +200,27 @@ Think step by step, then return strategy as JSON:
     "fallback_strategy": "what to do if something fails"
 }}
 """
-#         training_plan=plan,
-#         data_profile=profile,
-#         #data_path="../../examples/sample_data.csv",
-#         data_path="/Users/vvadali/Documents/git/vadaliv/llm-agent-finetuning/examples/sample_data.csv",
-#         user_id="vadaliv"
-#     )
+# ADAPTATION_PROMPT = """
+# The execution strategy needs adaptation based on intermediate results.
 
+# CURRENT STRATEGY: {strategy['approach']}
+# STEP {current_step} RESULT: {str(result)[:200]}...
 
-ADAPTATION_PROMPT = """
-The execution strategy needs adaptation based on intermediate results.
+# The result shows some issues. How should I adapt the remaining strategy?
 
-CURRENT STRATEGY: {strategy['approach']}
-STEP {current_step} RESULT: {str(result)[:200]}...
+# Should I:
+# 1. Continue with current plan
+# 2. Modify parameters for next steps
+# 3. Skip certain steps
+# 4. Add additional steps
 
-The result shows some issues. How should I adapt the remaining strategy?
-
-Should I:
-1. Continue with current plan
-2. Modify parameters for next steps  
-3. Skip certain steps
-4. Add additional steps
-
-Return adaptation as JSON:
-{{
-    "action": "modify_parameters",
-    "reasoning": "why adapt",
-    "changes": {{"step_3": {{"new_params": {{...}}}}}}
-}}
-"""
-
+# Return adaptation as JSON:
+# {{
+#     "action": "modify_parameters",
+#     "reasoning": "why adapt",
+#     "changes": {{"step_3": {{"new_params": {{...}}}}}}
+# }}
+# """
 
 
 FAILURE_PROMPT = """
@@ -244,31 +246,50 @@ Consider the error type and overall strategy. Return decision as JSON:
 """
 
 
-SYNTHESIS_PROMPT = """
-Synthesize the results from multiple AI agents into a final response for the user.
+# SYNTHESIS_PROMPT = """
+# Synthesize the results from multiple AI agents into a final response for the user.
 
-USER ORIGINAL REQUEST: "{user_prompt}"
-EXECUTION STRATEGY: {strategy['approach']}
+# USER ORIGINAL REQUEST: "{user_prompt}"
+# EXECUTION STRATEGY: {strategy['approach']}
 
-AGENT RESULTS:
-{json.dumps(results, default=str, indent=2)}
+# AGENT RESULTS:
+# {json.dumps(results, default=str, indent=2)}
 
-Create a final response that:
-1. Directly answers what the user wanted
-2. Summarizes what was accomplished
-3. Provides key metrics and outcomes
-4. Gives next steps or usage instructions
-5. Is clear and non-technical
+# Create a final response that:
+# 1. Directly answers what the user wanted
+# 2. Summarizes what was accomplished
+# 3. Provides key metrics and outcomes
+# 4. Gives next steps or usage instructions
+# 5. Is clear and non-technical
 
-Return as JSON:
-{{
-    "summary": "what was accomplished",
-    "key_results": {{
-        "model_endpoint": "url",
-        "accuracy": 0.95,
-        "training_time": "15 minutes"
-    }},
-    "next_steps": ["how to use the model", "suggestions"],
-    "technical_details": {{"for_advanced_users": "..."}}
-}}
+# Return as JSON:
+# {{
+#     "summary": "what was accomplished",
+#     "key_results": {{
+#         "model_endpoint": "url",
+#         "accuracy": 0.95,
+#         "training_time": "15 minutes"
+#     }},
+#     "next_steps": ["how to use the model", "suggestions"],
+#     "technical_details": {{"for_advanced_users": "..."}}
+# }}
+# """
+
+ANALYZE_METRICS_PROMPT = """
+Given the model's evaluation metrics, provide a brief summary covering:
+
+Performance level (Excellent, Good, Fair, or Poor)
+F1 score and accuracy (with values)
+A short interpretation of what those scores mean in context
+Actionable recommendations for improvement (if any)
+A high-level overall assessment of the model's performance
+
+Format with simple dash bullets (e.g., -) and no markdown, colors, or special characters.
+
+USER REQUEST: F1 Score: {f1_score}, Accuracy: {accuracy}
+
+Performance Level Guidelines:
+- Good: F1 > 0.8 and Accuracy > 0.8
+- Fair: F1 > 0.7 and Accuracy > 0.7
+- Poor: F1 <= 0.6 or Accuracy <= 0.6
 """
