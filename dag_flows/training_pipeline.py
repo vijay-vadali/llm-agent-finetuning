@@ -147,7 +147,8 @@ class FineTuningFlow(FlowSpec):
                 save_strategy="no",
                 save_total_limit=1,
                 load_best_model_at_end=False,
-                logging_strategy="no"
+                logging_strategy="no",
+                report_to="none"
             )
 
             data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
