@@ -1,8 +1,3 @@
-"""
-LLM Prompts - Template prompts for different agent tasks
-"""
-
-# Data Analysis Agent Prompts
 DATA_ANALYSIS_PROMPT = """
 Analyze this dataset for machine learning training:
 
@@ -44,7 +39,6 @@ Return JSON format: num_epochs, learning_rate, batch_size.
 }}
 """
 
-# Planning Agent Prompts
 PLANNING_PROMPT = """
 Create an optimal training plan for this ML task:
 
@@ -131,25 +125,6 @@ Available models:
 Recommend the optimal model and explain why.
 """
 
-# Deployment Prompts
-DEPLOYMENT_PROMPT = """
-Create deployment configuration for this trained model:
-
-MODEL INFO:
-- Task: {task_type}
-- Accuracy: {accuracy}
-- Model size: {model_size_mb}MB
-- Expected usage: {expected_usage}
-
-Suggest:
-1. Deployment strategy (API, batch processing)
-2. Resource requirements
-3. Scaling considerations
-
-Return practical deployment recommendations.
-"""
-
-# Used
 STRATEGY_PROMPT = """
 You are an AI orchestrator that coordinates specialized agents for machine learning tasks.
 
@@ -200,81 +175,6 @@ Think step by step, then return strategy as JSON:
     "fallback_strategy": "what to do if something fails"
 }}
 """
-# ADAPTATION_PROMPT = """
-# The execution strategy needs adaptation based on intermediate results.
-
-# CURRENT STRATEGY: {strategy['approach']}
-# STEP {current_step} RESULT: {str(result)[:200]}...
-
-# The result shows some issues. How should I adapt the remaining strategy?
-
-# Should I:
-# 1. Continue with current plan
-# 2. Modify parameters for next steps
-# 3. Skip certain steps
-# 4. Add additional steps
-
-# Return adaptation as JSON:
-# {{
-#     "action": "modify_parameters",
-#     "reasoning": "why adapt",
-#     "changes": {{"step_3": {{"new_params": {{...}}}}}}
-# }}
-# """
-
-
-FAILURE_PROMPT = """
-Agent execution failed:
-
-FAILED STEP: {failed_step}
-ERROR: {str(error)}
-STRATEGY: {strategy['approach']}
-
-How should I handle this failure?
-
-Options:
-1. "retry" with modified parameters
-2. "skip" this step and continue
-3. "abort" the entire process
-
-Consider the error type and overall strategy. Return decision as JSON:
-{{
-    "action": "retry",
-    "reasoning": "why this choice",
-    "new_params": {{"batch_size": 8}} // if retry
-}}
-"""
-
-
-# SYNTHESIS_PROMPT = """
-# Synthesize the results from multiple AI agents into a final response for the user.
-
-# USER ORIGINAL REQUEST: "{user_prompt}"
-# EXECUTION STRATEGY: {strategy['approach']}
-
-# AGENT RESULTS:
-# {json.dumps(results, default=str, indent=2)}
-
-# Create a final response that:
-# 1. Directly answers what the user wanted
-# 2. Summarizes what was accomplished
-# 3. Provides key metrics and outcomes
-# 4. Gives next steps or usage instructions
-# 5. Is clear and non-technical
-
-# Return as JSON:
-# {{
-#     "summary": "what was accomplished",
-#     "key_results": {{
-#         "model_endpoint": "url",
-#         "accuracy": 0.95,
-#         "training_time": "15 minutes"
-#     }},
-#     "next_steps": ["how to use the model", "suggestions"],
-#     "technical_details": {{"for_advanced_users": "..."}}
-# }}
-# """
-
 ANALYZE_METRICS_PROMPT = """
 Given the model's evaluation metrics, provide a brief summary covering:
 
