@@ -5,28 +5,28 @@ Choose your preferred interface: CLI, API, or programmatic
 """
 
 import os
-import sys
 import argparse
+import sys
 from pathlib import Path
 import logging
 import pdb
 import traceback
+from src.orchestrator import LLMOrchestrator
 
-# Configure logging if not already configured
+os.environ['METAFLOW_USER'] = 'vijayvadali'
 logging.basicConfig(level=logging.INFO)
 
 # Add src to path
-sys.path.insert(0, str(Path(__file__).parent))
-
-from src.orchestrator import LLMOrchestrator
+#sys.path.insert(0, str(Path(__file__).parent))
 
 #prompt = "re train model with 4 epochs 1e-5 learning rate and 8 as batch size"
-prompt = "what are the model metrics" 
+#prompt = "what are the model metrics" 
 #prompt = "what is the f1 score" 
 #prompt = "Classify customer reviews as positive or negative" 
-data_path = "/Users/vvadali/Documents/git/vadaliv/llm-agent-finetuning/examples/sample_data.csv"
+data_path = "/Users/vvadali/Documents/git/vadaliv/llm-agent-finetuning/training_data/sample_data.csv"
 model_path = "/Users/vvadali/Documents/git/vadaliv/llm-agent-finetuning/models/output/final_model"
 
+prompt = sys.argv[1]
 def main_cli():
     # Check API key
     if not os.getenv("OPENAI_API_KEY"):
